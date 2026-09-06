@@ -165,32 +165,23 @@ def val_fn(val_loader, model, device):
 
 
 def create_result_dir(model_name, dataset):
-    original_path = os.getcwd()
-
-    primary_path = "../../RecordData"
-    os.chdir(primary_path)
-
+    primary_path = "outputs"
     folder_name = f"{model_name}_{dataset}"
+    result_path = os.path.join(primary_path, folder_name)
 
-    if not os.path.exists(folder_name):
-        os.mkdir(folder_name)
-    else:
-        print("\033[31mRecordData文件夹内当前项目已存在，请仔细检查命名，若需要进行覆盖，请手动删除原项目。\033[0m")
+    os.makedirs(primary_path, exist_ok=True)
+
+    if os.path.exists(result_path):
+        print("\033[31moutputs文件夹内当前项目已存在，请仔细检查命名，若需要进行覆盖，请手动删除原项目。\033[0m")
         print(
-            "\033[31mThe current project already exists in the RecordData folder, please double check the naming and manually delete the original project if you need to perform an overwrite.\033[0m")
+            "\033[31mThe current project already exists in the outputs folder. Please double-check the naming and manually delete the original project if you need to overwrite it.\033[0m")
         quit()
 
-    folder_path = f"{folder_name}"
-    os.chdir(folder_path)
+    os.mkdir(result_path)
 
     for i in range(5):
         image_folder = f"saved_images{i}"
-        if not os.path.exists(image_folder):
-            os.mkdir(image_folder)
-
-    os.chdir(original_path)
-
-    result_path = f"../../RecordData/{folder_name}"
+        os.mkdir(os.path.join(result_path, image_folder))
 
     return result_path
 

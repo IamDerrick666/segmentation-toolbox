@@ -4,70 +4,44 @@
 
 **A lightweight PyTorch research template for 2D binary image segmentation experiments.**
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-Framework-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
 
----
-
 ## Overview
 
-**Segmentation Toolbox** is a compact training and experiment-management template developed for image segmentation research.
+Segmentation Toolbox is a compact research template for training and comparing PyTorch models on paired 2D image-mask datasets. It keeps experiment configuration in a single training script and provides dataset loading, augmentation, cross-validation, evaluation, prediction export, checkpoint handling, and CSV logging.
 
-It integrates the main components of a typical segmentation workflow, including dataset loading, augmentation, K-fold cross-validation, model training, evaluation, checkpoint handling, prediction export, and experiment logging.
-
-The toolbox is designed to simplify repeated segmentation experiments while keeping the model and dataset components easy to replace.
-
----
+The repository intentionally does not include a dataset or model implementation. Add these components for the experiment you want to run.
 
 ## Features
 
-- **K-fold cross-validation** with `scikit-learn`
-- **Data augmentation** with Albumentations
-- **Mixed-precision training** with PyTorch AMP
-- **Adam optimization**
-- Optional **ReduceLROnPlateau** learning-rate scheduling
-- **Checkpoint saving and loading**
-- Automatic export of segmentation predictions
-- CSV-based experiment logging
-- Support for common segmentation metrics:
-  - IoU
-  - Dice
-  - Sensitivity
-  - Specificity
-  - Precision
-  - AUC
-  - Accuracy
-
----
+- K-fold cross-validation with scikit-learn
+- Albumentations-based resizing, normalization, flips, and rotation augmentation
+- PyTorch AMP mixed-precision training
+- Adam optimizer
+- Optional `ReduceLROnPlateau` learning-rate scheduler
+- Checkpoint save/load support
+- Prediction, input-image, and ground-truth-mask export
+- CSV experiment logging
+- IoU, Dice, sensitivity, specificity, precision, AUC, accuracy, training loss, and validation loss reporting
 
 ## Workflow
 
 ```text
-Dataset
-   │
-   ▼
-Data loading & augmentation
-   │
-   ▼
-K-fold cross-validation
-   │
-   ▼
-Model training
-   │
-   ▼
-Validation & evaluation
-   │
-   ▼
-Prediction export
-   │
-   ▼
-Experiment logging
-````
-
----
+Paired images and masks
+        |
+        v
+Loading and augmentation
+        |
+        v
+K-fold training and validation
+        |
+        v
+Metrics, predictions, and CSV logs
+```
 
 ## Repository Structure
 
@@ -75,223 +49,142 @@ Experiment logging
 segmentation-toolbox/
 ├── README.md
 ├── LICENSE
-├── ToolBox_SEG.zip
-└── ToolBox_SEG/
-    ├── Project_Dataset/
-    │   ├── Dataset/
-    │   │   └── [dataset example]
-    │   │
-    │   └── Project (Reproduction only, please do not modify)/
-    │       ├── train.py
-    │       └── utils/
-    │           ├── dataset.py
-    │           └── utils.py
-    │
-    └── RecordData/
-        └── [experiment outputs]
+├── .gitignore
+├── train.py
+├── utils/
+│   ├── dataset.py
+│   └── utils.py
+├── models/
+│   └── README.md
+├── data/
+│   └── README.md
+└── outputs/
+    └── .gitkeep
 ```
-
-The current repository structure is retained for compatibility with the original implementation.
-
----
 
 ## Getting Started
 
-### 1. Clone the repository
+Clone the repository:
 
 ```bash
 git clone https://github.com/IamDerrick666/segmentation-toolbox.git
 cd segmentation-toolbox
 ```
 
-### 2. Install dependencies
-
-The current implementation relies on the following main packages:
+Install the libraries imported by the current code:
 
 ```bash
 pip install torch torchvision numpy scikit-learn albumentations pandas tqdm pillow
 ```
 
-Package versions should be selected according to your local Python and CUDA environment.
-
----
+Choose package builds and versions that match your Python, hardware, and CUDA environment.
 
 ## Dataset Preparation
 
-The default dataset loader expects paired images and binary masks.
-
-The current implementation assumes:
-
-* images are stored as `.tif`
-* masks are stored as `.png`
-* image and mask pairs share the same base filename
-
-A typical dataset layout is:
+Datasets are not distributed with this repository. The current loader expects paired 2D images and binary masks under `data/DATASET_NAME/`:
 
 ```text
-Project_Dataset/
-├── YOUR_DATASET/
-│   ├── images/
-│   │   ├── sample_001.tif
-│   │   ├── sample_002.tif
-│   │   └── ...
-│   │
-│   └── masks/
-│       ├── sample_001.png
-│       ├── sample_002.png
-│       └── ...
-│
-└── Project (Reproduction only, please do not modify)/
+data/
+└── DATASET_NAME/
+    ├── images/
+    │   ├── sample_001.tif
+    │   └── ...
+    └── masks/
+        ├── sample_001.png
+        └── ...
 ```
 
-Then update the dataset settings in `train.py`:
-
-```python
-DATASET = "YOUR_DATASET"
-
-IMG_DIR = "../YOUR_DATASET/images"
-MASK_DIR = "../YOUR_DATASET/masks"
-```
-
----
+Image-mask pairs must have matching base filenames. The implemented filename mapping replaces the `.tif` image suffix with `.png` for the mask. See [data/README.md](data/README.md) for the exact loader assumptions.
 
 ## Add Your Model
 
-Place your segmentation model under a local `models/` directory and update the corresponding import in `train.py`.
-
-For example:
+Place your segmentation model implementation under `models/`, then update the template import and model construction in `train.py`. For example:
 
 ```python
-from models.unet import UNet
+from models.model_name import model_name
 
-MODEL = UNet().to(DEVICE)
+MODEL = model_name().to(DEVICE)
 ```
 
-The model should accept image tensors as input and return segmentation logits compatible with the selected loss function.
-
----
+The model must accept image tensors and return segmentation logits compatible with the configured `BCEWithLogitsLoss`. No model is bundled with the repository. See [models/README.md](models/README.md).
 
 ## Experiment Configuration
 
-The main experimental settings are defined near the beginning of `train.py`.
+Edit the constants near the top of `train.py` before running an experiment:
 
 ```python
 NUM_FOLD = 5
 NUM_EPOCHS = 100
-
 BATCH_SIZE = 4
 NUM_WORKERS = 0
-
 DEFAULT_LEARNING_RATE = 1e-4
 DYNAMIC_LR = True
-
 IMG_HEIGHT = 224
 IMG_WIDTH = 224
-
+DATASET = "DATASET_NAME"
+IMG_DIR = "data/DATASET_NAME/images"
+MASK_DIR = "data/DATASET_NAME/masks"
 SAVE_IMG = True
 SAVE_MODEL = False
 LOAD_MODEL = False
-
 USE_AMP = True
-
 DEVICE = "cuda:0"
+MODEL_NAME = "MODEL_NAME"
 ```
 
-These values can be adjusted according to the dataset, model, and available hardware.
-
----
+The current augmentation policy, fold settings, loss, optimizer, metrics, and experiment loop are research-code defaults; review them for your own study without assuming they are universally appropriate.
 
 ## Training
 
-Run the training script from the project directory:
+After adding a dataset and model, run from the repository root:
 
 ```bash
-cd "ToolBox_SEG/Project_Dataset/Project (Reproduction only, please do not modify)"
 python train.py
 ```
 
-By default, the framework performs **5-fold cross-validation**.
-
-Each fold independently trains and evaluates a copy of the selected model.
-
----
+The script trains one copied model per fold and evaluates it after every epoch.
 
 ## Evaluation
 
-The current evaluation pipeline reports:
-
-| Metric          | Supported |
-| --------------- | :-------: |
-| IoU             |     ✓     |
-| Dice            |     ✓     |
-| Sensitivity     |     ✓     |
-| Specificity     |     ✓     |
-| Precision       |     ✓     |
-| AUC             |     ✓     |
-| Accuracy        |     ✓     |
-| Training Loss   |     ✓     |
-| Validation Loss |     ✓     |
-
-Evaluation results from each epoch are collected and exported to CSV.
-
----
+The validation loop reports IoU, Dice, sensitivity, specificity, precision, AUC, and accuracy. Each epoch also records the mean training loss and validation loss. All epoch records across folds are written to one CSV file after training completes.
 
 ## Experiment Outputs
 
-Experiment results are stored under:
+For a configured model and dataset, the script creates:
 
 ```text
-ToolBox_SEG/RecordData/
+outputs/
+└── MODEL_DATASET/
+    ├── MODEL_DATASET.csv
+    ├── saved_images0/
+    ├── saved_images1/
+    ├── saved_images2/
+    ├── saved_images3/
+    └── saved_images4/
 ```
 
-For each model–dataset combination, the toolbox can generate:
+With `SAVE_IMG = True`, each fold directory receives predicted masks, ground-truth masks, and input images. The result directory is created before training and the script exits if the same `MODEL_DATASET` directory already exists, preventing silent overwrite.
 
-```text
-MODEL_DATASET/
-├── MODEL_DATASET.csv
-├── saved_images0/
-├── saved_images1/
-├── saved_images2/
-├── saved_images3/
-└── saved_images4/
-```
-
-The saved prediction folders correspond to the individual cross-validation folds.
-
-Depending on the configuration, the toolbox can export:
-
-* input images
-* ground-truth masks
-* predicted masks
-* evaluation metrics
-* training loss
-* validation loss
-* model checkpoints
-
----
+With `SAVE_MODEL = True`, checkpoints are saved in the repository root as `MODEL_DATASET_foldN.pth.tar` when the training-loss condition improves. With `LOAD_MODEL = True`, the current code loads `checkpoint.pth.tar` from the repository root.
 
 ## Current Scope
 
-The current implementation is primarily intended for:
+This repository is a lightweight research template primarily intended for:
 
-* **2D image segmentation**
-* **binary segmentation**
-* paired image-mask datasets
-* research experiments and model benchmarking
+- 2D image segmentation
+- Binary segmentation
+- Paired image-mask datasets
+- Research experiments and model benchmarking
 
-This repository is a **research template rather than a packaged software library**.
-
-Users may need to modify the dataset loader, loss function, evaluation metrics, or model interface for multi-class segmentation, volumetric imaging, or other data formats.
-
----
+It is not a packaged or production-oriented segmentation library. Multi-class segmentation, volumetric data, alternative filename mappings, and other task-specific behavior require deliberate changes to the current code.
 
 ## Authors
 
-**Yuquan Xu**
+**Yuquan Xu**<br>
 **Ronghui Feng**
 
----
+Chengdu University
 
 ## License
 
-This project is released under the [MIT License](LICENSE).
+This project is available under the [MIT License](LICENSE).

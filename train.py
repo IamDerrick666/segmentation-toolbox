@@ -16,7 +16,6 @@ Version: 1.1
 Authors: Yuquan Xu, Ronghui Feng
 Chengdu University
 2024.04
-For research and clinical study only, commercial use is strictly prohibited
 """
 
 warnings.filterwarnings("ignore")
@@ -32,8 +31,8 @@ DYNAMIC_LR = True  # dynamic learning rate switch
 IMG_HEIGHT = 224  # image height
 IMG_WIDTH = 224  # image width
 DATASET = "DATASET_NAME"  # name of dataset
-IMG_DIR = "../DATASET_NAME/images"  # train image directory
-MASK_DIR = "../DATASET_NAME/masks"  # train mask directory
+IMG_DIR = "data/DATASET_NAME/images"  # train image directory
+MASK_DIR = "data/DATASET_NAME/masks"  # train mask directory
 SAVE_IMG = True  # save image
 SAVE_MODEL = False  # save model switch
 LOAD_MODEL = False  # load model switch
@@ -41,10 +40,10 @@ USE_AMP = True  # mixed accuracy training switch
 DEVICE = "cuda:0"  # device
 MODEL_NAME = "MODEL_NAME"  # name of model
 
-# Import model
+# Add your model implementation under models/ and update this import.
 from models.model_name import model_name
 
-# Define model
+# Instantiate the selected model.
 MODEL = model_name().to(DEVICE)
 
 

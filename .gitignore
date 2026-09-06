@@ -1,0 +1,15 @@
+data/*
+!data/README.md
+
+outputs/*
+!outputs/.gitkeep
+
+*.pth
+*.pth.tar
+*.pt
+
+__pycache__/
+*.pyc
+*.pyo
+
+.DS_Store
