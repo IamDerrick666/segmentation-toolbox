@@ -295,5 +295,3 @@ Users may need to modify the dataset loader, loss function, evaluation metrics, 
 ## License
 
 This project is released under the [MIT License](LICENSE).
-
-````
