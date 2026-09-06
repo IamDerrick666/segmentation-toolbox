@@ -112,9 +112,11 @@ def val_fn(val_loader, model, device):
     iou = 0
     dice = 0
     sensitivity = 0
-    specificity = 0
     precision = 0
-    auc = 0
+    total_tn = 0
+    total_fp = 0
+    auc_targets = []
+    auc_scores = []
 
     model.eval()
 
@@ -122,34 +124,36 @@ def val_fn(val_loader, model, device):
         for x, y in val_loader:
             x = x.to(device)
             y = y.to(device).unsqueeze(1)
-            x = model(x)
-            x = torch.tensor(x)
-            preds = torch.sigmoid(x)
-            preds = (preds > 0.5).float()
+            scores = torch.sigmoid(model(x))
+            preds = (scores > 0.5).float()
             num_correct += (preds == y).sum()
             num_pixels += torch.numel(preds)
             tp = (preds * y).sum()
-            tn = num_correct - (preds * y).sum()
+            tn = ((1 - preds) * (1 - y)).sum()
             fp = (preds - preds * y).sum()
             fn = (y - preds * y).sum()
             iou += tp / ((tp + fp + fn) + 1e-8)
             dice += (2 * tp) / ((2 * tp + fp + fn) + 1e-8)
             sensitivity += tp / ((tp + fn) + 1e-8)
-            specificity += tn / ((tn + fp) + 1e-8)
             precision += tp / ((tp + fp) + 1e-8)
+            total_tn += tn.item()
+            total_fp += fp.item()
 
-            a = y.cpu().numpy()  # 标签tensor转为list
-            b = preds.cpu().numpy()  # 预测tensor转为list
-            aa = list(np.array(a).flatten())  # 高维转为1维度
-            bb = list(np.array(b).flatten())  # 高维转为1维度
-            auc = metrics.roc_auc_score(aa, bb, multi_class='ovo')
+            auc_targets.append(y.detach().cpu().numpy().ravel())
+            auc_scores.append(scores.detach().cpu().numpy().ravel())
 
     iou = (iou / len(val_loader)).cpu().numpy()
     dice = (dice / len(val_loader)).cpu().numpy()
     sensitivity = (sensitivity / len(val_loader)).cpu().numpy()
-    specificity = (specificity / len(val_loader)).cpu().numpy()
+    specificity = total_tn / (total_tn + total_fp + 1e-8)
     precision = (precision / len(val_loader)).cpu().numpy()
     accuracy = (num_correct / num_pixels).cpu().numpy()
+    auc_targets = np.concatenate(auc_targets)
+    auc_scores = np.concatenate(auc_scores)
+    if np.unique(auc_targets).size < 2:
+        auc = float("nan")
+    else:
+        auc = metrics.roc_auc_score(auc_targets, auc_scores)
 
     print(f"IoU: {iou}")
     print(f"Dice: {dice}")

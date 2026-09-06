@@ -142,11 +142,11 @@ After adding a dataset and model, run from the repository root:
 python train.py
 ```
 
-The script trains one copied model per fold and evaluates it after every epoch.
+The script trains one copied model per fold and evaluates it after every epoch. Training batches follow the configured `DROP_LAST` setting, while validation always uses `drop_last=False` so every validation sample is evaluated.
 
 ## Evaluation
 
-The validation loop reports IoU, Dice, sensitivity, specificity, precision, AUC, and accuracy. Each epoch also records the mean training loss and validation loss. All epoch records across folds are written to one CSV file after training completes.
+The validation loop reports IoU, Dice, sensitivity, specificity, precision, AUC, and accuracy. Specificity is computed from validation-set true-negative and false-positive counts, and AUC is computed once from prediction scores aggregated across the full validation loader. If a validation target contains only one class, AUC is recorded as `NaN`. Each epoch also records the mean training loss and validation loss. All epoch records across folds are written to one CSV file after training completes.
 
 ## Experiment Outputs
 
@@ -165,7 +165,7 @@ outputs/
 
 With `SAVE_IMG = True`, each fold directory receives predicted masks, ground-truth masks, and input images. The result directory is created before training and the script exits if the same `MODEL_DATASET` directory already exists, preventing silent overwrite.
 
-With `SAVE_MODEL = True`, checkpoints are saved in the repository root as `MODEL_DATASET_foldN.pth.tar` when the training-loss condition improves. With `LOAD_MODEL = True`, the current code loads `checkpoint.pth.tar` from the repository root.
+With `SAVE_MODEL = True`, checkpoints are saved in the repository root as `MODEL_DATASET_foldN.pth.tar` when validation loss improves. With `LOAD_MODEL = True`, the current code loads `checkpoint.pth.tar` from the repository root.
 
 ## Current Scope
 

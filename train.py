@@ -70,7 +70,7 @@ def main():
         train_loader = get_loaders(train_subset, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY,
                                    drop_last=DROP_LAST)
         val_loader = get_loaders(val_subset, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY,
-                                 drop_last=DROP_LAST)
+                                 drop_last=False)
 
         model = copy.deepcopy(MODEL)
 
@@ -98,8 +98,8 @@ def main():
 
             val_loss = compute_validation_loss(val_loader, model, loss_fn, DEVICE)
 
-            if SAVE_MODEL and train_loss < best_loss:
-                best_loss = train_loss
+            if SAVE_MODEL and val_loss < best_loss:
+                best_loss = val_loss
                 checkpoint = {
                     "state_dict": model.state_dict(),
                     "optimizer": optimizer.state_dict(),
